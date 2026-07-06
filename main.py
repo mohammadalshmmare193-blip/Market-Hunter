@@ -1,18 +1,32 @@
+import os
 import requests
 import time
+from flask import Flask
+from threading import Thread
 
-BOT_TOKEN = "8950426447:AAGIfbiL6qa5fkGdT0Qgb1zH6kbwSQ5nlmE"
-CHANNEL_ID = -1004347664335
+app = Flask(__name__)
 
-def main():
-    # رسالة التأكيد
-    message = "✅ البوت يعمل الآن بنظام المراقبة بانتظار الأوامر."
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    requests.post(url, json={"chat_id": CHANNEL_ID, "text": message})
+# هذا المسار يجعله "Web Service" يستجيب للطلب
+@app.route('/')
+def home():
+    return "البوت يعمل الآن!"
+
+# دالة لتشغيل البوت في الخلفية
+def bot_logic():
+    BOT_TOKEN = "8950426447:AAGIfbiL6qa5fkGdT0Qgb1zH6kbwSQ5nlmE"
+    CHANNEL_ID = -1004347664335
     
-    # حلقة تكرار لا تنتهي عشان ما يطفي البوت
+    # رسالة عند بدء التشغيل
+    try:
+        requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", 
+                      json={"chat_id": CHANNEL_ID, "text": "✅ البوت يعمل الآن بنجاح كـ Web Service."})
+    except:
+        pass
+        
     while True:
-        time.sleep(60) # البوت رح ينام 60 ثانية ويرجع يعيد، هيك بضل شغال
+        time.sleep(300) # البوت سيعمل في الخلفية بدون توقف
 
+# تشغيل الـ Flask والـ Bot معاً
 if __name__ == "__main__":
-    main()
+    Thread(target=bot_logic).start()
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
